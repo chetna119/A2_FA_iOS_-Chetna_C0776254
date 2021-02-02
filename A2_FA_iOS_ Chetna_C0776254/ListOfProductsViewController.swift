@@ -8,7 +8,7 @@
 import UIKit
 import CoreData
 
-class ProductListViewController: UITableViewController {
+class ListOfProductsViewController: UITableViewController {
     
     @IBOutlet weak var productSearchBar: UISearchBar!
     
@@ -19,37 +19,38 @@ class ProductListViewController: UITableViewController {
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        loadData()
-        staticDataEntry()
+        getData()
+        initialdata()
         productSearchBar.delegate = self
         
-        //MARK: - to dispaly first product
         let indexPath = IndexPath(row: 0, section: 0)
         tableView.selectRow(at: indexPath, animated: true, scrollPosition: .bottom)
         performSegue(withIdentifier: "productDetail", sender: self)
     }
     
     // MARK: - load Data
-    func loadData()
+    func getData()
     {
         let request: NSFetchRequest<Product> = Product.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
         do {
             productList = try context.fetch(request)
         } catch {
-            print("Error loading products \(error.localizedDescription)")
+            print("Products  could not be loaded \(error.localizedDescription)")
         }
         tableView.reloadData()
     }
     
-    //MARK: - data manipulation core data
-    func loadData(with request: NSFetchRequest<Product> = Product.fetchRequest(), predicates: [NSPredicate]){
+    //MARK: -  changing the core data
+    func getData(with request: NSFetchRequest<Product> = Product.fetchRequest(), predicates: [NSPredicate]){
         request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
         request.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
         do {
             productList = try context.fetch(request)
-        } catch {
-            print("Error loading prodcuts \(error.localizedDescription)")
+        }
+        catch
+        {
+            print("Products  could not be loaded \(error.localizedDescription)")
         }
         
         tableView.reloadData()
@@ -57,7 +58,7 @@ class ProductListViewController: UITableViewController {
     }
     
     // MARK: - Navigation
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
+ 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let destination = segue.destination as! ProductViewController
         if let indexPath = tableView.indexPathForSelectedRow {
@@ -70,15 +71,15 @@ class ProductListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ProductListViewCell", for: indexPath) as! ProductListViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ProductListViewCell", for: indexPath) as! ProductViewCell
         let product = productList[indexPath.row]
         cell.initCell(product)
         return cell
     }
     
-    // MARK: - Static data entry
-    func staticDataEntry(){
-        deleteProvider()
+    // MARK: - Enter initial Data
+    func initialdata()
+    {
         productList.forEach { (product) in
             context.delete(product)
         }
@@ -130,36 +131,21 @@ class ProductListViewController: UITableViewController {
             print("Error saving products \(error.localizedDescription)")
         }
     }
-
-    // delete old providers
-    func deleteProvider(){
-        print("number of provider :")
-        let request: NSFetchRequest<Provider> = Provider.fetchRequest()
-        
-        do {
-            let providerList = try context.fetch(request)
-            providerList.forEach { (provider) in
-                context.delete(provider)
-            }
-        } catch {
-            print("Error loading providers \(error.localizedDescription)")
-        }
-    }
 }
 
-extension ProductListViewController: UISearchBarDelegate {
+extension ListOfProductsViewController: UISearchBarDelegate {
     
     //MARK: - searchbar on click event
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         let titlePredicate = NSPredicate(format: "name CONTAINS[cd] %@", searchBar.text!)
         let descriptionPredicate = NSPredicate(format: "desc CONTAINS[cd] %@", searchBar.text!)
-        loadData(predicates: [titlePredicate, descriptionPredicate])
+        getData(predicates: [titlePredicate, descriptionPredicate])
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0 {
-            loadData()
+            getData()
             
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()

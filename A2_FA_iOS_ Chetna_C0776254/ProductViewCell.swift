@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ProductListViewCell: UITableViewCell{
+class ProductViewCell: UITableViewCell{
     
     @IBOutlet weak var productName: UITextField!
     @IBOutlet weak var productPrice: UITextField!
